@@ -179,12 +179,18 @@ span.not-applicable:after {
   cursor: pointer;
 }
 
-// Credentials
+// Credentials and Ace Editor
 
 #ace-credential-value {
   position: relative;
   width: 940px;
-  height: 400px;
+  height: 300px;
+}
+
+.ace-editor {
+  position: relative;
+  width: 550px;
+  height: 300px;
 }
 
 // Disabled
@@ -252,8 +258,8 @@ h2 .scenario, a span.label.scenario {
   width: 200px;
 }
 
-$services:            twitter     37signals   github      tumblr      dropbox;
-$service-colors:      #55acee     #8fc857     #444444     #2c4762     #007EE5;
+$services:            twitter     37signals   github      tumblr      dropbox   wunderlist;
+$service-colors:      #55acee     #8fc857     #444444     #2c4762     #007EE5   #ED5F27;
 
 @mixin services {
   @each $service in $services {
@@ -291,29 +297,4 @@ $service-colors:      #55acee     #8fc857     #444444     #2c4762     #007EE5;
 
 .label-service {
   @include services;
-}
-
-// Font Awesome Spinner
-
-.fa-spin-custom {
-  @include animation(spin 1000ms infinite linear);
-}
-
-@mixin keyframes($name)
-{
-  @-webkit-keyframes $name {
-    @content;
-  }
-  @keyframes $name {
-    @content;
-  }
-}
-
-@include keyframes(spin) {
-  0% {
-    @include rotate(0deg);
-  }
-  100% {
-    @include rotate(359deg);
-  }
 }

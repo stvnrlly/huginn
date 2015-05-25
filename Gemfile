@@ -8,19 +8,21 @@ gem 'net-ftp-list', '~> 3.2.8'    # FtpsiteAgent
 gem 'wunderground', '~> 1.2.0'    # WeatherAgent
 gem 'forecast_io', '~> 2.0.0'     # WeatherAgent
 gem 'rturk', '~> 2.12.1'          # HumanTaskAgent
-gem 'weibo_2', '~> 0.1'         # Weibo Agents
 gem 'hipchat', '~> 1.2.0'         # HipchatAgent
 gem 'xmpp4r',  '~> 0.5.6'         # JabberAgent
 gem 'mqtt'                        # MQTTAgent
 gem 'slack-notifier', '~> 1.0.0'  # SlackAgent
 gem 'hypdf', '~> 1.0.7'           # PDFInfoAgent
 
+# Weibo Agents
+gem 'weibo_2', github: 'cantino/weibo_2', branch: 'master'
+
 # GoogleCalendarPublishAgent
 gem "google-api-client", require: 'google/api_client'
 
 # Twitter Agents
-gem 'twitter', '~> 5.8.0' # Must to be loaded before cantino-twitter-stream.
-gem 'twitter-stream', github: 'dsander/twitter-stream', branch: 'huginn'
+gem 'twitter', '~> 5.14.0' # Must to be loaded before cantino-twitter-stream.
+gem 'twitter-stream', github: 'cantino/twitter-stream', branch: 'huginn'
 gem 'omniauth-twitter'
 
 # Tumblr Agents
@@ -37,6 +39,7 @@ gem 'haversine'
 # Optional Services.
 gem 'omniauth-37signals'          # BasecampAgent
 # gem 'omniauth-github'
+gem 'omniauth-wunderlist', github: 'wunderlist/omniauth-wunderlist', ref: 'd0910d0396107b9302aa1bc50e74bb140990ccb8'
 
 # Bundler <1.5 does not recognize :x64_mingw as a valid platform name.
 # Unfortunately, it can't self-update because it errors when encountering :x64_mingw.
@@ -55,6 +58,7 @@ gem 'daemons', '~> 1.1.9'
 gem 'delayed_job', '~> 4.0.0'
 gem 'delayed_job_active_record', '~> 4.0.0'
 gem 'devise', '~> 3.4.0'
+gem 'dotenv-rails', '~> 2.0.1'
 gem 'em-http-request', '~> 1.1.2'
 gem 'faraday', '~> 0.9.0'
 gem 'faraday_middleware'
@@ -82,7 +86,7 @@ gem 'sass-rails',   '~> 5.0'
 gem 'select2-rails', '~> 3.5.4'
 gem 'spectrum-rails'
 gem 'string-scrub'	# for ruby <2.1
-gem 'therubyracer', '~> 0.12.1'
+gem 'therubyracer', '~> 0.12.2'
 gem 'typhoeus', '~> 0.6.3'
 gem 'uglifier', '>= 1.3.0'
 
@@ -93,27 +97,25 @@ group :development do
   gem 'guard'
   gem 'guard-livereload'
   gem 'guard-rspec'
-end
 
-group :development, :test do
-  gem 'coveralls', require: false
-  gem 'delorean'
-  gem 'dotenv-rails'
-  gem 'pry'
-  gem 'rr'
-  gem 'rspec', '~> 3.2'
-  gem 'rspec-collection_matchers', '~> 1.1.0'
-  gem 'rspec-rails', '~> 3.1'
-  gem 'rspec-html-matchers', '~> 0.7'
-  gem 'shoulda-matchers'
-  gem 'spring', '~> 1.3.0'
-  gem 'spring-commands-rspec'
-  gem 'vcr'
-  gem 'webmock', '~> 1.17.4', require: false
+  group :test do
+    gem 'coveralls', require: false
+    gem 'delorean'
+    gem 'pry'
+    gem 'rr'
+    gem 'rspec', '~> 3.2'
+    gem 'rspec-collection_matchers', '~> 1.1.0'
+    gem 'rspec-rails', '~> 3.1'
+    gem 'rspec-html-matchers', '~> 0.7'
+    gem 'shoulda-matchers'
+    gem 'spring', '~> 1.3.0'
+    gem 'spring-commands-rspec'
+    gem 'vcr'
+    gem 'webmock', '~> 1.17.4', require: false
+  end
 end
 
 group :production do
-  gem 'dotenv-deployment'
   gem 'rack'
 end
 
@@ -123,15 +125,23 @@ gem 'tzinfo', '>= 1.2.0'	# required by rails; 1.2.0 has support for *BSD and Sol
 # Windows does not have zoneinfo files, so bundle the tzinfo-data gem.
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw]
 
-# This hack needs some explanation.  When on Heroku, use the pg, unicorn, and rails12factor gems.
-# When not on Heroku, we still want our Gemfile.lock to include these gems, so we scope them to
-# an unsupported platform.
-if ENV['ON_HEROKU'] || ENV['HEROKU_POSTGRESQL_ROSE_URL'] || ENV['HEROKU_POSTGRESQL_GOLD_URL'] || File.read(File.join(File.dirname(__FILE__), 'Procfile')) =~ /intended for Heroku/
+# Introduces a scope for Heroku specific gems.
+def on_heroku
+  if ENV['ON_HEROKU'] ||
+     ENV['HEROKU_POSTGRESQL_ROSE_URL'] ||
+     ENV['HEROKU_POSTGRESQL_GOLD_URL'] ||
+     File.read(File.join(File.dirname(__FILE__), 'Procfile')) =~ /intended for Heroku/
+    yield
+  else
+    # When not on Heroku, we still want our Gemfile.lock to include
+    # Heroku specific gems, so we scope them to an unsupported
+    # platform.
+    platform :ruby_18, &proc
+  end
+end
+
+on_heroku do
   gem 'pg'
   gem 'unicorn'
   gem 'rails_12factor', group: :production
-else
-  gem 'pg', platform: :ruby_18
-  gem 'unicorn', platform: :ruby_18
-  gem 'rails_12factor', platform: :ruby_18
 end
